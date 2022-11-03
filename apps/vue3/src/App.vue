@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Sheet, SheetCell, VirtualList, useDataSource, vScrollbar } from '@sonofmagic/ui'
+import Home from './views/Home.vue'
 </script>
 
 <template>
   <div>
-    vue3
+    <Home></Home>
   </div>
 
 </template>

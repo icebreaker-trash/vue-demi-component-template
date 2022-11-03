@@ -3,7 +3,7 @@ import type { RouteConfig } from 'vue-router'
 import VueRouter from 'vue-router'
 import Home from '@/views/Home.vue'
 import NotFound from '@/views/NotFound.vue'
-import ScrollDemo from '@/views/ScrollDemo.vue'
+
 Vue.use(VueRouter)
 
 export const routes: RouteConfig[] = [
@@ -16,13 +16,7 @@ export const routes: RouteConfig[] = [
     // NOTE: you can also lazy-load the component
     // component: () => import("@/views/About.vue")
   },
-  {
-    path: '/scroll',
-    name: 'scroll',
-    // NOTE: you can also apply meta information
-    // meta: {authRequired: false }
-    component: ScrollDemo,
-  },
+
   {
     path: '/:path(.*)',
     name: 'NotFound',
