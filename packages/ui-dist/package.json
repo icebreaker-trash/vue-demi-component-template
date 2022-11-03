@@ -1,0 +1,46 @@
+{
+  "name": "vue-dom-sheet",
+  "version": "0.1.2",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-dom-sheet.umd.js",
+  "module": "./dist/vue-dom-sheet.mjs",
+  "scripts": {},
+  "dependencies": {
+    "vue-demi": "latest"
+  },
+  "peerDependencies": {
+    "@vue/composition-api": "^1.7.1",
+    "vue": "^2.0.0 || >=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@vue/composition-api": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sonofmagic/vue-dom-sheet2.git"
+  },
+  "author": "SonOfMagic <qq1324318532@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sonofmagic/vue-dom-sheet2/issues"
+  },
+  "homepage": "https://github.com/sonofmagic/vue-dom-sheet2#readme",
+  "keywords": [
+    "excel",
+    "sheet",
+    "component",
+    "grid",
+    "table",
+    "cell",
+    "spread"
+  ]
+}

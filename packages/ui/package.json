@@ -1,0 +1,21 @@
+{
+  "name": "@sonofmagic/ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./exports.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "vue-demi": "latest",
+    "@floating-ui/dom": "^1.0.4",
+    "@types/lodash-es": "^4.17.6",
+    "@vueuse/core": "^9.0.0",
+    "lodash-es": "^4.17.21",
+    "perfect-scrollbar": "^1.5.5",
+    "vue-fragment": "^1.6.0"
+  }
+}
