@@ -4,7 +4,7 @@
   "description": "",
   "main": "./exports.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "vite build"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +17,12 @@
     "lodash-es": "^4.17.21",
     "perfect-scrollbar": "^1.5.5",
     "vue-fragment": "^1.6.0"
+  },
+  "devDependencies": {
+    "vite": "^3.2.2",
+    "vue": "npm:vue@v2-latest",
+    "@vitejs/plugin-vue2": "^2.0.0",
+    "@vitejs/plugin-vue2-jsx": "^1.0.3",
+    "rollup-plugin-visualizer": "^5.8.3"
   }
 }
