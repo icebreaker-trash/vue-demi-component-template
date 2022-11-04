@@ -2,11 +2,11 @@
  * virtual list default component
  */
 // @ts-nocheck
-import { defineComponent } from 'vue-demi'
+import { defineComponent, h } from 'vue-demi'
 import Virtual from './virtual'
 import { Item, Slot } from './item'
 import { VirtualProps } from './props'
-
+import mitt from 'mitt'
 const EVENT_TYPE = {
   ITEM: 'item_resize',
   SLOT: 'slot_resize',
@@ -52,13 +52,19 @@ const VirtualList = defineComponent({
     this.directionKey = this.isHorizontal ? 'scrollLeft' : 'scrollTop'
 
     this.installVirtual()
+    const emitter = mitt()
+    emitter.on(EVENT_TYPE.ITEM, this.onItemResized)
 
     // listen item size change
-    this.$on(EVENT_TYPE.ITEM, this.onItemResized)
+    // this.$on()
 
     // listen slot size change
-    if (this.$slots.header || this.$slots.footer)
-      this.$on(EVENT_TYPE.SLOT, this.onSlotResized)
+    if (this.$slots.header || this.$slots.footer) {
+      emitter.on(EVENT_TYPE.SLOT, this.onSlotResized)
+      // this.$on(EVENT_TYPE.SLOT, this.onSlotResized)
+    }
+    this.emitter = emitter
+
   },
 
   activated() {
@@ -280,7 +286,7 @@ const VirtualList = defineComponent({
     // get the real render slots based on range data
     // in-place patch strategy will try to reuse components as possible
     // so those components that are reused will not trigger lifecycle mounted
-    getRenderSlots(h) {
+    getRenderSlots() {
       const slots = []
       const { start, end } = this.range
       const { dataSources, dataKey, itemClass, itemTag, itemStyle, isHorizontal, extraProps, dataComponent, itemScopedSlots } = this
@@ -323,7 +329,7 @@ const VirtualList = defineComponent({
 
   // render function, a closer-to-the-compiler alternative to templates
   // https://vuejs.org/v2/guide/render-function.html#The-Data-Object-In-Depth
-  render(h) {
+  render() {
     const { header, footer, colgroup, append, thead, tfoot } = this.$slots
     const { padFront, padBehind } = this.range
     const { isHorizontal, pageMode, rootTag, wrapTag, wrapClass, wrapStyle, headerTag, headerClass, headerStyle, footerTag, footerClass, footerStyle, colgroupClass, colgroupStyle, tableClass, tableStyle, table } = this
@@ -368,34 +374,34 @@ const VirtualList = defineComponent({
           },
           table
             ? [
-                h(
-                  'table',
-                  {
-                    class: tableClass,
-                    style: tableStyle,
-                  },
-                  [
-                    colgroup
-                      ? h(
-                        Slot,
-                        {
-                          class: colgroupClass,
-                          style: colgroupStyle,
-                          props: {
-                            tag: 'colgroup',
-                            event: EVENT_TYPE.SLOT,
-                            uniqueKey: SLOT_TYPE.COLGROUP,
-                          },
+              h(
+                'table',
+                {
+                  class: tableClass,
+                  style: tableStyle,
+                },
+                [
+                  colgroup
+                    ? h(
+                      Slot,
+                      {
+                        class: colgroupClass,
+                        style: colgroupStyle,
+                        props: {
+                          tag: 'colgroup',
+                          event: EVENT_TYPE.SLOT,
+                          uniqueKey: SLOT_TYPE.COLGROUP,
                         },
-                        colgroup,
-                      )
-                      : null,
-                    thead,
-                    h('tbody', {}, this.getRenderSlots(h)),
-                    tfoot,
-                  ],
-                ),
-              ]
+                      },
+                      colgroup,
+                    )
+                    : null,
+                  thead,
+                  h('tbody', {}, this.getRenderSlots()),
+                  tfoot,
+                ],
+              ),
+            ]
             : this.getRenderSlots(h),
         ),
 

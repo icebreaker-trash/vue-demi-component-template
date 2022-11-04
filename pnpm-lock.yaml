@@ -108,6 +108,7 @@ importers:
       '@vitejs/plugin-vue2-jsx': ^1.0.3
       '@vueuse/core': ^9.0.0
       lodash-es: ^4.17.21
+      mitt: ^3.0.0
       perfect-scrollbar: ^1.5.5
       rollup-plugin-visualizer: ^5.8.3
       vite: ^3.2.2
@@ -119,6 +120,7 @@ importers:
       '@types/lodash-es': 4.17.6
       '@vueuse/core': 9.4.0_vue@2.7.13
       lodash-es: 4.17.21
+      mitt: 3.0.0
       perfect-scrollbar: 1.5.5
       vue-demi: 0.13.11_vue@2.7.13
       vue-fragment: 1.6.0_vue@2.7.13
@@ -3086,6 +3088,10 @@ packages:
   /minimist/1.2.7:
     resolution: {integrity: sha512-bzfL1YUZsP41gmu/qjrEk0Q6i2ix/cVeAhbCbqH9u3zYutS1cLg00qhrD0M2MVdCcx4Sc0UpP2eBWo9rotpq6g==}
     dev: true
+
+  /mitt/3.0.0:
+    resolution: {integrity: sha512-7dX2/10ITVyqh4aOSVI9gdape+t9l2/8QxHrFmUXu4EEUpdlxl6RudZUPZoc+zuY2hk1j7XxVroIVIan/pD/SQ==}
+    dev: false
 
   /mlly/0.5.16:
     resolution: {integrity: sha512-LaJ8yuh4v0zEmge/g3c7jjFlhoCPfQn6RCjXgm9A0Qiuochq4BcuOxVfWmdnCoLTlg2MV+hqhOek+W2OhG0Lwg==}

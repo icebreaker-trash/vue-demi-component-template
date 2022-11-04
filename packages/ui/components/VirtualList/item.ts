@@ -3,7 +3,7 @@
  * we need to know their size change at any time
  */
 // @ts-nocheck
-import { defineComponent } from 'vue-demi'
+import { defineComponent, h, getCurrentInstance } from 'vue-demi'
 import { ItemProps, SlotProps } from './props'
 
 const Wrapper = {
@@ -16,7 +16,10 @@ const Wrapper = {
       this.resizeObserver = new ResizeObserver(() => {
         this.dispatchSizeChange()
       })
-      this.resizeObserver.observe(this.$el)
+      const vm = getCurrentInstance()
+      // console.log(vm)
+      // debugger
+      this.resizeObserver.observe(vm.$el)
     }
   },
 
@@ -39,7 +42,9 @@ const Wrapper = {
 
     // tell parent current size identify by unqiue key
     dispatchSizeChange() {
-      this.$parent.$emit(this.event, this.uniqueKey, this.getCurrentSize(), this.hasInitial)
+      //if (this.$parent.emitter) {
+      this.$parent.emitter.emit(this.event, this.uniqueKey, this.getCurrentSize(), this.hasInitial)
+      //}
     },
   },
 }
@@ -51,7 +56,7 @@ export const Item = defineComponent({
 
   props: ItemProps,
 
-  render(h) {
+  render() {
     const { tag, component, extraProps = {}, index, source, scopedSlots = {}, uniqueKey, slotComponent } = this
 
     const props = {
@@ -87,7 +92,7 @@ export const Slot = defineComponent({
 
   props: SlotProps,
 
-  render(h) {
+  render() {
     const { tag, uniqueKey } = this
 
     return h(
