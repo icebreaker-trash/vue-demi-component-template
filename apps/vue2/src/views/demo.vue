@@ -1,27 +1,17 @@
 <script lang="ts" setup>
-import { h, ref } from 'vue-demi'
+import { h, nextTick, onBeforeMount, ref } from 'vue-demi'
 import { Checkbox, MessageBox } from 'element-ui'
 import dayjs from 'dayjs'
 // @ts-expect-error
 import { cloneDeep } from 'lodash-es'
 import type { ContextMenuSlotContext, ICellAttrs, IScrollOffset, ItemComponentProps, VSheetType } from '@sonofmagic/ui'
-import { Sheet, SheetCell, VirtualList, useDataSource, vScrollbar } from '@sonofmagic/ui'
+import { Popover, Sheet, SheetCell, VirtualList, useDataSource, usePopover, vScrollbar } from '@sonofmagic/ui'
 import Item from './item.vue'
 import yAxisItem from './yAxisItem.vue'
 const sheetRef = ref<VSheetType>()
-const { columns, dataSource, rows } = useDataSource(async () => {
-  const { data } = await import('./mock.json')
-
+const page = ref(0)
+const { columns, dataSource, transform } = useDataSource(() => {
   const columns = []
-  const rows = []
-  for (let i = 0; i < 50; i++) {
-    rows.push(...cloneDeep(data.map((x, j) => {
-      return {
-        ...x,
-        personId: x.personId + i + j,
-      }
-    })))
-  }
 
   const columnsLength = 30
   const firstDay = dayjs().startOf('M')
@@ -35,12 +25,26 @@ const { columns, dataSource, rows } = useDataSource(async () => {
 
   return {
     columns,
-    rows,
+    // rows,
     // childrenKey: 'shiftId',
     rowKey: 'personId',
     children: 'shiftList',
   }
 })
+let mockData
+onBeforeMount(async () => {
+  const { data } = await import('./mock.json')
+  mockData = data
+  for (let i = 0; i < 2; i++) {
+    dataSource.value.push(...transform(data.map((x, j) => {
+      return {
+        ...x,
+        personId: x.personId + i + j,
+      }
+    })))
+  }
+})
+const { context: subPopoverContext } = usePopover()
 const dom = ref<HTMLDivElement>()
 const syncScroll = ({ scrollLeft, scrollTop }: IScrollOffset) => {
   if (dom.value) {
@@ -65,8 +69,7 @@ const closeContextMenu = ({ menuContext }: ContextMenuSlotContext) => {
 
 function doLock({ menuContext, selectedCellSet }: ContextMenuSlotContext) {
   selectedCellSet?.forEach((x) => {
-    if (x.value)
-      x.locked = true
+    x.locked = true
   })
   menuContext.close()
 }
@@ -123,6 +126,51 @@ const itemScopedSlots = {
     })
   },
 }
+
+function wait(ts = 1000) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(ts)
+    }, ts)
+  })
+}
+
+function expandSubPopover(ctx: ContextMenuSlotContext, e: MouseEvent) {
+  console.log(ctx, e)
+}
+
+async function onScroll2Bottom({ yAxisScrollbar }) {
+  // console.log(yAxisScrollbar)
+  await wait()
+  // console.log(mockData)
+  dataSource.value.push(...transform(cloneDeep(mockData.map((x, j) => {
+    return {
+      ...x,
+      personId: x.personId + j + Math.random(),
+    }
+  }))))
+  nextTick(() => {
+    yAxisScrollbar?.update()
+  })
+
+  page.value++
+  console.log('fetchNewRows')
+}
+
+function resetColumns(ctx: ContextMenuSlotContext) {
+  const _columns = []
+
+  const columnsLength = 10
+  const firstDay = dayjs('2022-06-01').startOf('M')
+  for (let i = 0; i < columnsLength; i++) {
+    _columns.push({
+      width: 120,
+      title: firstDay.add(i, 'day').format('YYYY-MM-DD'),
+      key: i,
+    })
+  }
+  columns.value = _columns
+}
 </script>
 
 <template>
@@ -141,10 +189,7 @@ const itemScopedSlots = {
             <div class="table-row-group">
               <div v-for="(row, idx) in dataSource" :key="row.key" class="h-[48px] border table-row">
                 <div class="table-cell p-2">
-                  <Checkbox
-                    :true-label="true" :false-label="false"
-                    @change="(v) => sheetRef?.selectRow(idx, v)"
-                  />
+                  <Checkbox :true-label="true" :false-label="false" @change="(v) => sheetRef?.selectRow(idx, v)" />
                   选中第{{ idx + 1 }}行
                 </div>
               </div>
@@ -172,7 +217,7 @@ const itemScopedSlots = {
       <!-- <Sheet :columns="columns" :dataSource="dataSource" @scroll="syncScroll"></Sheet> -->
       <Sheet
         ref="sheetRef" :item-scoped-slots="itemScopedSlots" :columns="columns" :data-source="dataSource"
-        :item-component="SheetCell" @scroll="syncScroll"
+        :item-component="SheetCell" :on-scroll-to-bottom="onScroll2Bottom" @scroll="syncScroll"
       >
         <template #context-menu="ctx">
           <div class="w-32 text-center">
@@ -212,10 +257,11 @@ const itemScopedSlots = {
               </div>
               <div
                 class="hover:bg-blue-200 hover:text-blue-600 px-4 py-1 cursor-pointer"
-                @click="closeContextMenu(ctx)"
+                @click="expandSubPopover(ctx, $event)"
               >
                 行/列复制
               </div>
+
               <div
                 class="hover:bg-blue-200 hover:text-blue-600 px-4 py-1 cursor-pointer"
                 @click="closeContextMenu(ctx)"
@@ -235,6 +281,30 @@ const itemScopedSlots = {
               <div class="hover:bg-blue-200 hover:text-blue-600 px-4 py-1 cursor-pointer" @click="doSetValue(ctx)">
                 clear
               </div>
+              <div class="hover:bg-blue-200 hover:text-blue-600 px-4 py-1 cursor-pointer" @click="resetColumns(ctx)">
+                reset columns
+              </div>
+              <Popover :context="subPopoverContext" placement="right-start">
+                <div class="w-32 text-center">
+                  <div class="w-32 text-center">
+                    <div class="hover:bg-blue-200 hover:text-blue-600 px-4 py-1 cursor-pointer" @click="doLock(ctx)">
+                      从上往下
+                    </div>
+                    <div class="hover:bg-blue-200 hover:text-blue-600 px-4 py-1 cursor-pointer" @click="unlock(ctx)">
+                      从下往上
+                    </div>
+                    <div class="hover:bg-blue-200 hover:text-blue-600 px-4 py-1 cursor-pointer" @click="doNote(ctx)">
+                      从左往右
+                    </div>
+                    <div
+                      class="hover:bg-blue-200 hover:text-blue-600 px-4 py-1 cursor-pointer"
+                      @click="setDisabled(ctx, true)"
+                    >
+                      从右往左
+                    </div>
+                  </div>
+                </div>
+              </Popover>
             </div>
           </div>
         </template>
@@ -275,6 +345,8 @@ const itemScopedSlots = {
   </div>
 </template>
 
-<style scoped>
-
+<style lang="scss">
+.vue-dom-sheet-context-menu {
+  @apply border bg-white;
+}
 </style>
