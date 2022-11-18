@@ -1,5 +1,5 @@
-import { ref } from 'vue-demi'
-
+import { ref, watch } from 'vue-demi'
+import type { Ref } from 'vue-demi'
 import type { IDataSourceItem, IDataSourceRow } from '../types'
 
 interface IColumn {
@@ -15,55 +15,79 @@ interface IRow {
 }
 interface IWrapDataResponse {
   columns: IColumn[]
-  rows: IRow[]
-  childrenKey: string
-  rowKey: string
-  children: string
+  // rows: IRow[]
+  childKey?: string
+  rowKey?: string
+  children?: string
 }
 
-export default function useDataSource(fn: (...args: any[]) => Promise<IWrapDataResponse>) {
+function noop(x: unknown) { return x }
+
+function createTransformMethod(res: IWrapDataResponse, dataSourceRef: Ref<IDataSourceRow<unknown>[]>) {
+  const { childKey, children = 'children', columns, rowKey } = res
+
+  return function transform(rows: IRow[]) {
+    const columnsLength = columns.length
+    const data: IDataSourceRow[] = []
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]
+      const tr = []
+      for (let j = 0; j < columnsLength; j++) {
+        const value = row[children][j]
+        const y = i + dataSourceRef.value.length
+        const x = j
+        let id = `${y}-${x}`
+        // console.log(i, dataSourceRef.value.length)
+        if (childKey && value)
+          id = value[childKey]
+
+        const td: IDataSourceItem = {
+          value, // `${i}-${j}`,
+          id,
+          selected: false,
+          readonly: false,
+          disabled: false,
+          editing: false,
+          locked: false,
+          x,
+          y,
+        }
+        tr.push(td)
+      }
+      data.push({
+        cells: tr,
+        key: rowKey ? row[rowKey] : `row${i}`,
+        row,
+      })
+    }
+    return data
+  }
+}
+
+export default function useDataSource(fn: (...args: any[]) => IWrapDataResponse) {
   const dataSetSource: IDataSourceRow[] = []
   const dataSource = ref(dataSetSource)
   const columns = ref<IColumn[]>([])
-  const rows = ref<IRow[]>([])
-
+  // const rows = ref<IRow[]>([])
+  let transform: ReturnType<typeof createTransformMethod> | typeof noop = noop
+  let config: IWrapDataResponse | undefined
   if (fn) {
-    fn().then(({ childrenKey, children, columns: _columns, rows: _rows, rowKey }) => {
-      const columnsLength = _columns.length
-      for (let i = 0; i < _rows.length; i++) {
-        const row = _rows[i]
-        const tr = []
-        for (let j = 0; j < columnsLength; j++) {
-          const value = row[children][j]
-
-          let id = `${i}-${j}`
-          if (childrenKey && value)
-            id = value[childrenKey]
-
-          const td: IDataSourceItem = {
-            value, // `${i}-${j}`,
-            id,
-            selected: false,
-            readonly: false,
-            disabled: false,
-            editing: false,
-            locked: false,
-          }
-          tr.push(td)
-        }
-        dataSource.value.push({
-          cells: tr,
-          key: rowKey ? row[rowKey] : `row${i}`,
-        })
-      }
-      columns.value = _columns
-      rows.value = _rows
-    })
+    config = fn()
+    transform = createTransformMethod(config, dataSource)
+    columns.value = config.columns
   }
+
+  watch(columns, (nv) => {
+    transform = createTransformMethod({
+      ...config,
+      columns: nv,
+    }, dataSource)
+  })
 
   return {
     columns,
     dataSource,
-    rows,
+    transform,
+    // rows,
   }
 }

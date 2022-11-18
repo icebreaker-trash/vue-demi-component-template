@@ -11,12 +11,15 @@ export interface IDataSourceItem<T = unknown> {
   disabled: boolean
   editing: boolean
   locked: boolean
+  x: number
+  y: number
   // note?: string
 }
 
 export interface IDataSourceRow<T = unknown> {
   key: string
   cells: IDataSourceItem<T>[]
+  row: T
 }
 
 export interface ICellAttrs {
